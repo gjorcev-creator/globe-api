@@ -431,6 +431,7 @@ async function openAIJson({ prompt, schema, useWeb = false }) {
 
   if (!res.ok) {
     const errText = await res.text();
+    console.log("OPENAI RAW ERROR:", res.status, errText);
     throw new Error(`OpenAI API error: ${res.status} ${errText}`);
   }
 
