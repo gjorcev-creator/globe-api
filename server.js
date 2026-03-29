@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const OPENAI_MODEL = "gpt-4o-mini";
 const CACHE_MINUTES = Number(process.env.ANALYSIS_CACHE_MINUTES || 20);
 
 app.use(cors());
@@ -593,7 +593,7 @@ async function fetchMediaPacket(country, config) {
     return await openAIJson({
       prompt: mediaPrompt(country, config),
       schema: mediaSchema,
-      useWeb: true
+      useWeb: false
     });
   } catch (err) {
     console.error("Media packet error:", err.message);
