@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 
 const parser = new Parser({
   timeout: 10000,
-  headers: { "User-Agent": "globe-api/6.0.0" }
+  headers: { "User-Agent": "globe-api/7.0.0" }
 });
 
 app.use(cors());
@@ -51,7 +51,6 @@ const rssSources = {
   Spain: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
 
   "United Kingdom": [FEEDS.BBC_UK, FEEDS.GUARDIAN_WORLD],
-  Ireland: [FEEDS.BBC_UK, FEEDS.GUARDIAN_WORLD],
 
   "United States": [FEEDS.NYT_HOME, FEEDS.FOX_US, FEEDS.BBC_US],
 
@@ -65,19 +64,41 @@ const rssSources = {
   Turkey: [FEEDS.BBC_MIDDLE_EAST, FEEDS.DW],
   Iran: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
   Israel: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
-  Egypt: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
 
   Greece: [FEEDS.BBC_EUROPE],
   Bulgaria: [FEEDS.BBC_EUROPE],
   Serbia: [FEEDS.BBC_EUROPE],
   Albania: [FEEDS.BBC_EUROPE],
-  Kosovo: [FEEDS.BBC_EUROPE],
+  Kosovo: [FEEDS.BBC_EUROPE]
+};
 
-  Brazil: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
-  Argentina: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+/* =========================
+   SMART KEYWORDS
+========================= */
 
-  Australia: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
-  Canada: [FEEDS.BBC_US, FEEDS.NYT_WORLD]
+const countryKeywords = {
+  Germany: ["germany", "berlin", "scholz", "bundeswehr"],
+
+  "United States": [
+    "united states",
+    "us",
+    "trump",
+    "melania",
+    "iran",
+    "pentagon"
+  ],
+
+  France: ["france", "macron", "election", "eu"],
+
+  "United Kingdom": ["uk", "britain", "king", "starmer", "duchess"],
+
+  EU: ["eu", "brussels", "von der leyen"],
+
+  Bulgaria: ["bulgaria", "macedonia", "minority", "action plan"],
+
+  Greece: ["greece", "macedonia", "north macedonia"],
+
+  Macedonia: ["macedonia", "north macedonia", "skopje"]
 };
 
 /* =========================
@@ -109,37 +130,36 @@ async function fetchWikipediaSummary(country) {
 }
 
 /* =========================
-   RSS FETCH
+   RSS FILTER ENGINE
 ========================= */
 
 async function fetchRssNews(country) {
   const feeds = rssSources[country];
 
   if (!feeds) {
-    return [
-      { title: "No RSS available", source: "", link: "" }
-    ];
+    return [{ title: "No RSS available", source: "", link: "" }];
   }
 
+  const keywords = countryKeywords[country] || [country.toLowerCase()];
   const results = [];
   const seen = new Set();
-
-  const countryLower = country.toLowerCase();
 
   for (const feedUrl of feeds) {
     try {
       const feed = await parser.parseURL(feedUrl);
 
-      let addedFromThisFeed = false;
+      let added = false;
 
       for (const item of feed.items || []) {
         if (!item.title) continue;
 
-        const titleLower = item.title.toLowerCase();
+        const title = item.title.toLowerCase();
 
-        // 🔥 ФИЛТЕР ПО ДРЖАВА
-        if (!titleLower.includes(countryLower)) continue;
+        const match = keywords.some((kw) =>
+          title.includes(kw.toLowerCase())
+        );
 
+        if (!match) continue;
         if (seen.has(item.title)) continue;
 
         seen.add(item.title);
@@ -150,36 +170,34 @@ async function fetchRssNews(country) {
           link: item.link
         });
 
-        addedFromThisFeed = true;
-        break; // ✅ зема само 1 по извор
+        added = true;
+        break;
       }
 
-      // 🔥 FALLBACK ако нема match
-      if (!addedFromThisFeed && feed.items.length > 0) {
-        const fallbackItem = feed.items[0];
+      // fallback
+      if (!added && feed.items.length > 0) {
+        const fallback = feed.items[0];
 
-        if (!seen.has(fallbackItem.title)) {
-          seen.add(fallbackItem.title);
+        if (!seen.has(fallback.title)) {
+          seen.add(fallback.title);
 
           results.push({
-            title: fallbackItem.title,
+            title: fallback.title,
             source: feed.title,
-            link: fallbackItem.link
+            link: fallback.link
           });
         }
       }
-
     } catch (err) {
       console.log("RSS error:", err.message);
     }
   }
 
-  // максимум 3 вести
   return results.slice(0, 3);
 }
 
 /* =========================
-   MAIN BUILDER
+   MAIN
 ========================= */
 
 async function buildCountryProfile(rawName) {
@@ -207,7 +225,7 @@ async function buildCountryProfile(rawName) {
 ========================= */
 
 app.get("/", (req, res) => {
-  res.json({ ok: true, version: "6.0.0" });
+  res.json({ ok: true, version: "7.0.0" });
 });
 
 app.get("/country/:name", async (req, res) => {
