@@ -2,14 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const Parser = require("rss-parser");
 
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const parser = new Parser({
   timeout: 10000,
   headers: {
-    "User-Agent": "globe-api/5.0"
+    "User-Agent": "globe-api/5.0.2"
   }
 });
 
@@ -29,7 +30,7 @@ const manualNotes = {
     reminder: "Reserved for manual input.",
     talkingPoints: "Reserved for manual input."
   },
-  United States: {
+  "United States": {
     reminder: "Reserved for manual input.",
     talkingPoints: "Reserved for manual input."
   }
@@ -47,7 +48,7 @@ const rssSources = {
     "https://feeds.bbci.co.uk/news/world/europe/rss.xml",
     "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
   ],
-  United States: [
+  "United States": [
     "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
   ],
   Russia: [
@@ -106,7 +107,7 @@ async function fetchWikipediaSummary(country) {
     try {
       const res = await fetch(url, {
         headers: {
-          "User-Agent": "globe-api/5.0"
+          "User-Agent": "globe-api/5.0.2"
         }
       });
 
@@ -130,11 +131,20 @@ function buildEuSummary(country) {
     return "Macedonia maintains a strategically important relationship with the European Union centered on accession, reform, and political alignment. The EU remains the main external institutional reference point for the country, and developments in Brussels directly shape its domestic political agenda. The relationship is generally constructive, but progress is often tied to internal reforms, regional diplomacy, and broader enlargement dynamics.";
   }
 
-  if (country === "France" || country === "Germany" || country === "Italy" || country === "Spain") {
+  if (
+    country === "France" ||
+    country === "Germany" ||
+    country === "Italy" ||
+    country === "Spain"
+  ) {
     return `${country} is a major European actor with an institutional relationship to the European Union that is central rather than external. Its domestic politics, economic agenda, and foreign policy priorities are deeply tied to EU-level decision making. In practical terms, this means that its role inside the Union is a core part of its wider geopolitical position.`;
   }
 
-  if (country === "United States" || country === "China" || country === "Russia") {
+  if (
+    country === "United States" ||
+    country === "China" ||
+    country === "Russia"
+  ) {
     return `${country} is not part of the European Union, but its relationship with the EU is strategically important and shaped by trade, security, diplomacy, and regulatory friction. The tone of the relationship depends on the wider international climate, sanctions policy, and alignment on major crises.`;
   }
 
@@ -146,11 +156,19 @@ function buildUsaSummary(country) {
     return "Macedonia has a stable strategic relationship with the United States, particularly through NATO cooperation, political support, and regional security alignment. Washington is seen as an important external partner in defense, institutional stability, and regional diplomacy. The relationship is generally positive and anchored in long-term strategic support.";
   }
 
-  if (country === "France" || country === "Germany" || country === "United Kingdom") {
+  if (
+    country === "France" ||
+    country === "Germany" ||
+    country === "United Kingdom"
+  ) {
     return `${country} has a deep but sometimes nuanced relationship with the United States, shaped by alliance politics, security cooperation, and broader transatlantic coordination. Even when tactical disagreements appear, the overall relationship remains strategically important. Defense, diplomacy, and crisis response are usually the key pillars.`;
   }
 
-  if (country === "Russia" || country === "Iran" || country === "China") {
+  if (
+    country === "Russia" ||
+    country === "Iran" ||
+    country === "China"
+  ) {
     return `${country} has a strategically sensitive and often competitive relationship with the United States. The relationship is usually defined by security questions, sanctions, broader geopolitical rivalry, and crisis-driven diplomacy.`;
   }
 
@@ -162,7 +180,11 @@ function buildMacedoniaSummary(country) {
     return "This is the domestic reference entry for Macedonia. In later iterations, this field can be used either as a self-profile note or replaced by a domestic strategic assessment relevant to the workflow.";
   }
 
-  if (country === "France" || country === "Germany" || country === "Italy") {
+  if (
+    country === "France" ||
+    country === "Germany" ||
+    country === "Italy"
+  ) {
     return `Relations between Macedonia and ${country} are generally framed through European integration, bilateral diplomacy, and political support in wider European processes. Depending on the country, the relationship may also include economic cooperation, cultural presence, and institutional dialogue.`;
   }
 
@@ -170,7 +192,13 @@ function buildMacedoniaSummary(country) {
     return "Relations between Macedonia and the United States are strategically important and generally positive. They are shaped by NATO membership, security cooperation, political support, and wider regional stability considerations. This is one of the most important bilateral external relationships for Macedonia.";
   }
 
-  if (country === "Greece" || country === "Bulgaria" || country === "Albania" || country === "Serbia" || country === "Kosovo") {
+  if (
+    country === "Greece" ||
+    country === "Bulgaria" ||
+    country === "Albania" ||
+    country === "Serbia" ||
+    country === "Kosovo"
+  ) {
     return `Relations between Macedonia and ${country} are regionally significant and should be understood in the context of neighborhood politics, trade, infrastructure, minority issues where relevant, and broader Balkan stability. These ties often carry more immediate political sensitivity than more distant bilateral relationships.`;
   }
 
@@ -181,15 +209,18 @@ function buildFallbackNews(country) {
   return [
     {
       title: `Top domestic headline for ${country} will appear here`,
-      source: "Pending source"
+      source: "Pending source",
+      link: ""
     },
     {
       title: `Political or diplomatic update for ${country} will appear here`,
-      source: "Pending source"
+      source: "Pending source",
+      link: ""
     },
     {
       title: `Economic or security development for ${country} will appear here`,
-      source: "Pending source"
+      source: "Pending source",
+      link: ""
     }
   ];
 }
@@ -270,7 +301,7 @@ app.get("/", (req, res) => {
   res.json({
     ok: true,
     service: "globe-api",
-    version: "5.0.0"
+    version: "5.0.2"
   });
 });
 
