@@ -76,6 +76,10 @@ const manualNotes = {
   Greece: {
     reminder: "Reserved for manual input.",
     talkingPoints: "Reserved for manual input."
+  },
+  Serbia: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
   }
 };
 
@@ -297,6 +301,30 @@ const countryConfig = {
       "europa.eu",
       "eeas.europa.eu"
     ]
+  },
+
+  Serbia: {
+    keywords: [
+      "Serbia",
+      "Belgrade",
+      "Vucic",
+      "Kosovo"
+    ],
+    mediaDomains: [
+      "reuters.com",
+      "bbc.com",
+      "dw.com",
+      "euronews.com",
+      "politico.eu",
+      "nytimes.com"
+    ],
+    officialDomains: [
+      "srbija.gov.rs",
+      "mfa.gov.rs",
+      "predsednik.rs",
+      "europa.eu",
+      "eeas.europa.eu"
+    ]
   }
 };
 
@@ -310,7 +338,8 @@ function normalizeCountryName(name) {
     "Viet Nam": "Vietnam",
     "Korea, Republic of": "South Korea",
     "Korea, Democratic People's Republic of": "North Korea",
-    Czechia: "Czech Republic"
+    Czechia: "Czech Republic",
+    "Republic of Serbia": "Serbia"
   };
 
   return map[name] || name;
@@ -344,7 +373,7 @@ async function fetchWikipediaSummary(country) {
 
     try {
       const res = await fetch(url, {
-        headers: { "User-Agent": "globe-api/10.0.0" }
+        headers: { "User-Agent": "globe-api/10.1.0" }
       });
 
       if (!res.ok) continue;
@@ -363,7 +392,7 @@ async function fetchWikipediaSummary(country) {
    OPENAI CORE
 ========================= */
 
-async function openAIJson({ prompt, schema, domains = [] }) {
+async function openAIJson({ prompt, schema, useWeb = false }) {
   if (!OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY missing.");
   }
@@ -381,7 +410,7 @@ async function openAIJson({ prompt, schema, domains = [] }) {
     }
   };
 
-  if (domains.length) {
+  if (useWeb) {
     body.tools = [
       {
         type: "web_search_preview",
@@ -406,16 +435,15 @@ async function openAIJson({ prompt, schema, domains = [] }) {
 
   const data = await res.json();
 
-  const text = data.output_text;
-  if (!text) {
+  if (!data.output_text) {
     throw new Error("No output_text returned by OpenAI.");
   }
 
-  return JSON.parse(text);
+  return JSON.parse(data.output_text);
 }
 
 /* =========================
-   WEB SEARCH PROMPTS
+   PROMPTS
 ========================= */
 
 function mediaPrompt(country, config) {
@@ -425,14 +453,13 @@ You are collecting real-time media inputs for a geopolitical dashboard.
 Country: ${country}
 Keywords: ${config.keywords.join(", ")}
 
-Search the web and prioritize highly reputable media outlets relevant to the country.
-Strongly prefer these media domains:
+Search the web and prioritize highly reputable media outlets. Prefer these domains when relevant:
 ${config.mediaDomains.join(", ")}
 
 Task:
 1. Find 3 current and relevant articles for this country.
 2. Prefer political, diplomatic, security, economic, election, or regional developments.
-3. Avoid duplicates and pure opinion pieces if possible.
+3. Avoid duplicates and pure opinion pieces where possible.
 4. If a title is not in English, translate it to English.
 5. For each item, include the article URL and source.
 6. Return only structured JSON.
@@ -446,8 +473,7 @@ You are collecting official-source inputs for a geopolitical dashboard.
 Country: ${country}
 Keywords: ${config.keywords.join(", ")}
 
-Search the web and prioritize official domains relevant to this country.
-Strongly prefer these official domains:
+Search the web and prioritize official domains. Prefer these domains when relevant:
 ${config.officialDomains.join(", ")}
 
 Task:
@@ -567,7 +593,7 @@ async function fetchMediaPacket(country, config) {
     return await openAIJson({
       prompt: mediaPrompt(country, config),
       schema: mediaSchema,
-      domains: config.mediaDomains
+      useWeb: true
     });
   } catch (err) {
     console.error("Media packet error:", err.message);
@@ -583,7 +609,7 @@ async function fetchOfficialPacket(country, config) {
     return await openAIJson({
       prompt: officialPrompt(country, config),
       schema: officialSchema,
-      domains: config.officialDomains
+      useWeb: true
     });
   } catch (err) {
     console.error("Official packet error:", err.message);
@@ -598,7 +624,8 @@ async function synthesizeCountryProfile(country, wikipediaSummary, mediaPacket, 
   try {
     return await openAIJson({
       prompt: synthesisPrompt(country, wikipediaSummary, mediaPacket, officialPacket),
-      schema: synthesisSchema
+      schema: synthesisSchema,
+      useWeb: false
     });
   } catch (err) {
     console.error("Synthesis error:", err.message);
@@ -682,7 +709,7 @@ app.get("/", (req, res) => {
   res.json({
     ok: true,
     service: "globe-api",
-    version: "10.0.0"
+    version: "10.1.0"
   });
 });
 
