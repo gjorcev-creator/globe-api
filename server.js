@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 const parser = new Parser({
   timeout: 10000,
   headers: {
-    "User-Agent": "globe-api/5.0.2"
+    "User-Agent": "globe-api/5.1.0"
   }
 });
 
@@ -33,48 +33,147 @@ const manualNotes = {
   "United States": {
     reminder: "Reserved for manual input.",
     talkingPoints: "Reserved for manual input."
+  },
+  Greece: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Bulgaria: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Serbia: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Albania: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Kosovo: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Italy: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Spain: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  "United Kingdom": {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Russia: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Ukraine: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  China: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Iran: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Turkey: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
+  Israel: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
   }
 };
 
+const FEEDS = {
+  BBC_WORLD: "https://feeds.bbci.co.uk/news/world/rss.xml",
+  BBC_EUROPE: "https://feeds.bbci.co.uk/news/world/europe/rss.xml",
+  BBC_MIDDLE_EAST: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml",
+  BBC_US_CANADA: "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml",
+  BBC_ASIA: "https://feeds.bbci.co.uk/news/world/asia/rss.xml",
+  BBC_UK: "https://feeds.bbci.co.uk/news/uk/rss.xml",
+  NYT_WORLD: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+  NYT_EUROPE: "https://rss.nytimes.com/services/xml/rss/nyt/Europe.xml",
+  NYT_HOMEPAGE: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+};
+
 const rssSources = {
-  Macedonia: [
-    "https://rss.nytimes.com/services/xml/rss/nyt/Europe.xml"
-  ],
-  France: [
-    "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml"
-  ],
-  Germany: [
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml",
-    "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
-  ],
-  "United States": [
-    "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
-  ],
-  Russia: [
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml"
-  ],
-  Ukraine: [
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml"
-  ],
-  China: [
-    "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
-  ],
-  Iran: [
-    "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
-  ],
-  Greece: [
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml"
-  ],
-  Bulgaria: [
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml"
-  ],
-  Serbia: [
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml"
-  ],
-  Albania: [
-    "https://feeds.bbci.co.uk/news/world/europe/rss.xml"
-  ]
+  Macedonia: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Albania: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Kosovo: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Serbia: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Bulgaria: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Greece: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Romania: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Croatia: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Slovenia: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Montenegro: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  "Bosnia and Herzegovina": [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Hungary: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Austria: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Switzerland: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Czech Republic: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Slovakia: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Poland: [FEEDS.BBC_EUROPE, FEEDS.NYT_EUROPE],
+  Germany: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  France: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Italy: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Spain: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Portugal: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Netherlands: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Belgium: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Luxembourg: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Ireland: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Denmark: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Sweden: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Norway: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Finland: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Estonia: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Latvia: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Lithuania: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Ukraine: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Russia: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  "United Kingdom": [FEEDS.BBC_UK, FEEDS.NYT_WORLD],
+  "United States": [FEEDS.BBC_US_CANADA, FEEDS.NYT_HOMEPAGE],
+  Canada: [FEEDS.BBC_US_CANADA, FEEDS.NYT_WORLD],
+  Mexico: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Turkey: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Israel: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Palestine: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Lebanon: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Syria: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Jordan: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Iraq: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Iran: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  "Saudi Arabia": [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Egypt: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  China: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  Japan: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  India: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  Pakistan: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  "South Korea": [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  Vietnam: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  Thailand: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  Indonesia: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  Australia: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  "New Zealand": [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Brazil: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Argentina: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Chile: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Colombia: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  "South Africa": [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Nigeria: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Ethiopia: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Morocco: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Algeria: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Tunisia: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD]
 };
 
 function normalizeCountryName(name) {
@@ -86,7 +185,9 @@ function normalizeCountryName(name) {
     "Syrian Arab Republic": "Syria",
     "Viet Nam": "Vietnam",
     "Korea, Republic of": "South Korea",
-    "Czechia": "Czech Republic"
+    "Korea, Democratic People's Republic of": "North Korea",
+    Czechia: "Czech Republic",
+    "Bosnia and Herz.": "Bosnia and Herzegovina"
   };
 
   return map[name] || name;
@@ -107,7 +208,7 @@ async function fetchWikipediaSummary(country) {
     try {
       const res = await fetch(url, {
         headers: {
-          "User-Agent": "globe-api/5.0.2"
+          "User-Agent": "globe-api/5.1.0"
         }
       });
 
@@ -243,6 +344,7 @@ async function fetchRssNews(country) {
   }
 
   const collected = [];
+  const seenTitles = new Set();
 
   for (const feedUrl of feeds) {
     try {
@@ -250,6 +352,9 @@ async function fetchRssNews(country) {
 
       for (const item of feed.items || []) {
         if (!item.title) continue;
+        if (seenTitles.has(item.title)) continue;
+
+        seenTitles.add(item.title);
 
         collected.push({
           title: item.title,
@@ -257,13 +362,13 @@ async function fetchRssNews(country) {
           link: item.link || ""
         });
 
-        if (collected.length >= 6) break;
+        if (collected.length >= 8) break;
       }
     } catch (err) {
       console.error("RSS fetch failed:", country, feedUrl, err.message);
     }
 
-    if (collected.length >= 6) break;
+    if (collected.length >= 8) break;
   }
 
   if (!collected.length) {
@@ -301,7 +406,7 @@ app.get("/", (req, res) => {
   res.json({
     ok: true,
     service: "globe-api",
-    version: "5.0.2"
+    version: "5.1.0"
   });
 });
 
