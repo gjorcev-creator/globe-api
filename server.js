@@ -2,84 +2,230 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
-const countryData = {
+/**
+ * Placeholder manual notes store.
+ * Подоцна ова ќе оди во база.
+ */
+const manualNotes = {
+  Macedonia: {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  },
   France: {
-    country: "France",
-    general: "France is a major European power and a founding member of the EU.",
-    eu: "Core EU member with strong influence over union policy.",
-    usa: "Longstanding ally of the United States, with occasional strategic differences.",
-    mk: "Stable and constructive bilateral relations with North Macedonia.",
-    news: [
-      { title: "France debates new European defense initiatives" },
-      { title: "Paris hosts high-level diplomatic meetings" },
-      { title: "French economy shows mixed signals" },
-      { title: "France increases regional security engagement" },
-      { title: "Energy policy remains central political issue" }
-    ]
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
   },
   Germany: {
-    country: "Germany",
-    general: "Germany is Europe’s largest economy and a central EU actor.",
-    eu: "Leading EU member shaping economic and political strategy.",
-    usa: "Strong transatlantic partner with close security and trade ties.",
-    mk: "Supportive partner of North Macedonia’s European path.",
-    news: [
-      { title: "Berlin reviews industrial competitiveness measures" },
-      { title: "Germany pushes new EU policy coordination" },
-      { title: "Coalition tensions shape domestic agenda" },
-      { title: "German exports show gradual adjustment" },
-      { title: "Debates continue on defense modernization" }
-    ]
-  },
-  "North Macedonia": {
-    country: "North Macedonia",
-    general: "North Macedonia is a Balkan state and NATO member with an EU accession trajectory.",
-    eu: "Candidate country focused on accession reforms and political alignment.",
-    usa: "Strong strategic relationship with the United States through NATO and bilateral cooperation.",
-    mk: "Domestic reference state.",
-    news: [
-      { title: "Government discusses reform priorities" },
-      { title: "Regional diplomacy remains active" },
-      { title: "EU-related legislation stays in focus" },
-      { title: "Economic measures dominate public debate" },
-      { title: "Security coordination continues with allies" }
-    ]
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
   }
 };
 
-app.get("/", (req, res) => {
-  res.json({ ok: true, service: "globe-api" });
-});
+/**
+ * Normalize names from GeoJSON / frontend.
+ */
+function normalizeCountryName(name) {
+  const map = {
+    "North Macedonia": "Macedonia",
+    "Republic of Macedonia": "Macedonia",
+    "United States of America": "United States",
+    "Russian Federation": "Russia",
+    "Syrian Arab Republic": "Syria",
+    "Viet Nam": "Vietnam",
+    "Korea, Republic of": "South Korea"
+  };
 
-app.get("/country/:name", (req, res) => {
-  const rawName = req.params.name;
-  const decodedName = decodeURIComponent(rawName);
+  return map[name] || name;
+}
 
-  const data =
-    countryData[decodedName] ||
+/**
+ * Wikipedia summary fetch.
+ */
+async function fetchWikipediaSummary(country) {
+  const candidates = [country];
+
+  if (country === "Macedonia") {
+    candidates.unshift("North Macedonia");
+  }
+
+  for (const candidate of candidates) {
+    const url =
+      "https://en.wikipedia.org/api/rest_v1/page/summary/" +
+      encodeURIComponent(candidate);
+
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "globe-api/3.0"
+        }
+      });
+
+      if (!res.ok) continue;
+
+      const data = await res.json();
+
+      if (data && data.extract) {
+        return data.extract;
+      }
+    } catch (err) {
+      console.error("Wikipedia fetch failed:", candidate, err.message);
+    }
+  }
+
+  return `${country} is displayed in the globe platform. A fuller strategic overview will be added in the next backend iteration.`;
+}
+
+/**
+ * Placeholder AI analysis.
+ * Подоцна овде ќе дојде OpenAI.
+ */
+function buildRelationPlaceholders(country) {
+  return {
+    eu:
+      `${country} has a relationship with the European Union that will be summarized here through live analytical generation. ` +
+      `This section should eventually include institutional alignment, strategic positioning, accession or partnership dynamics, and recent political developments.`,
+
+    usa:
+      `${country} has a relationship with the United States that will be summarized here through live analytical generation. ` +
+      `This section should later capture strategic cooperation, political tone, defense links, and current diplomatic trends.`,
+
+    mk:
+      `Relations between Macedonia and ${country} will be summarized here through live analytical generation. ` +
+      `This section should later include bilateral dialogue, trade, regional context, and issues of diplomatic relevance.`
+  };
+}
+
+/**
+ * Placeholder headlines.
+ * Подоцна ќе влечеме live news.
+ */
+function buildPlaceholderNews(country) {
+  return [
     {
-      country: decodedName,
-      general: `${decodedName} is displayed in the globe platform.`,
-      eu: `No structured EU assessment yet for ${decodedName}.`,
-      usa: `No structured USA assessment yet for ${decodedName}.`,
-      mk: `No structured North Macedonia assessment yet for ${decodedName}.`,
-      news: [
-        { title: `Top headlines for ${decodedName} will appear here` },
-        { title: `Diplomatic update feed placeholder` },
-        { title: `Economic developments placeholder` },
-        { title: `Regional affairs placeholder` },
-        { title: `Security developments placeholder` }
-      ]
-    };
+      title: `Top domestic headline for ${country} will appear here`,
+      source: "Pending source"
+    },
+    {
+      title: `Political or diplomatic update for ${country} will appear here`,
+      source: "Pending source"
+    },
+    {
+      title: `Economic or security development for ${country} will appear here`,
+      source: "Pending source"
+    }
+  ];
+}
 
-  res.json(data);
+function buildPlaceholderMediaAnalysis(country) {
+  return (
+    `Recent media coverage in ${country} will be summarized here in five concise sentences. ` +
+    `This section is intended to reflect the dominant themes in the latest domestic headlines, translated into English where necessary, ` +
+    `and synthesized into a short analytical brief for quick situational awareness.`
+  );
+}
+
+/**
+ * Build full country profile.
+ */
+async function buildCountryProfile(rawName) {
+  const country = normalizeCountryName(rawName);
+  const general = await fetchWikipediaSummary(country);
+  const relations = buildRelationPlaceholders(country);
+  const notes = manualNotes[country] || {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  };
+
+  return {
+    country,
+    general,
+    eu: relations.eu,
+    usa: relations.usa,
+    mk: relations.mk,
+    news: buildPlaceholderNews(country),
+    mediaAnalysis: buildPlaceholderMediaAnalysis(country),
+    reminder: notes.reminder,
+    talkingPoints: notes.talkingPoints,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+app.get("/", (req, res) => {
+  res.json({
+    ok: true,
+    service: "globe-api",
+    version: "3.0.0"
+  });
 });
 
-const PORT = process.env.PORT || 5000;
+app.get("/country/:name", async (req, res) => {
+  try {
+    const rawName = decodeURIComponent(req.params.name);
+    const profile = await buildCountryProfile(rawName);
+    res.json(profile);
+  } catch (err) {
+    console.error("Country route error:", err);
+    res.status(500).json({
+      error: "Failed to build country profile."
+    });
+  }
+});
+
+/**
+ * Manual notes read.
+ */
+app.get("/country/:name/notes", (req, res) => {
+  const rawName = decodeURIComponent(req.params.name);
+  const country = normalizeCountryName(rawName);
+
+  const notes = manualNotes[country] || {
+    reminder: "Reserved for manual input.",
+    talkingPoints: "Reserved for manual input."
+  };
+
+  res.json({
+    country,
+    reminder: notes.reminder,
+    talkingPoints: notes.talkingPoints
+  });
+});
+
+/**
+ * Manual notes write.
+ * Подоцна ќе го заклучиме со auth.
+ */
+app.post("/country/:name/notes", (req, res) => {
+  const rawName = decodeURIComponent(req.params.name);
+  const country = normalizeCountryName(rawName);
+
+  const reminder =
+    typeof req.body.reminder === "string"
+      ? req.body.reminder
+      : "Reserved for manual input.";
+
+  const talkingPoints =
+    typeof req.body.talkingPoints === "string"
+      ? req.body.talkingPoints
+      : "Reserved for manual input.";
+
+  manualNotes[country] = {
+    reminder,
+    talkingPoints
+  };
+
+  res.json({
+    ok: true,
+    country,
+    reminder,
+    talkingPoints
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`globe-api running on port ${PORT}`);
 });
