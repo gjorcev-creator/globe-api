@@ -10,34 +10,79 @@ const PORT = process.env.PORT || 5000;
 
 const parser = new Parser({
   timeout: 10000,
-  headers: { "User-Agent": "globe-api/5.1.1" }
+  headers: { "User-Agent": "globe-api/6.0.0" }
 });
 
 app.use(cors());
 app.use(express.json());
 
-const rssSources = {
-  Macedonia: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  France: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Germany: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Italy: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Spain: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Greece: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Bulgaria: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Serbia: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Albania: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Russia: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  Ukraine: ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  China: ["https://feeds.bbci.co.uk/news/world/asia/rss.xml"],
-  Iran: ["https://feeds.bbci.co.uk/news/world/middle_east/rss.xml"],
-  Turkey: ["https://feeds.bbci.co.uk/news/world/middle_east/rss.xml"],
+/* =========================
+   FEEDS
+========================= */
 
-  "United States": ["https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"],
-  "United Kingdom": ["https://feeds.bbci.co.uk/news/uk/rss.xml"],
-  "Czech Republic": ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"],
-  "South Korea": ["https://feeds.bbci.co.uk/news/world/asia/rss.xml"],
-  "Bosnia and Herzegovina": ["https://feeds.bbci.co.uk/news/world/europe/rss.xml"]
+const FEEDS = {
+  BBC_WORLD: "https://feeds.bbci.co.uk/news/world/rss.xml",
+  BBC_EUROPE: "https://feeds.bbci.co.uk/news/world/europe/rss.xml",
+  BBC_US: "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml",
+  BBC_UK: "https://feeds.bbci.co.uk/news/uk/rss.xml",
+  BBC_ASIA: "https://feeds.bbci.co.uk/news/world/asia/rss.xml",
+  BBC_MIDDLE_EAST: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml",
+
+  NYT_WORLD: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+  NYT_HOME: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+
+  FOX_US: "https://moxie.foxnews.com/google-publisher/latest.xml",
+
+  GUARDIAN_WORLD: "https://www.theguardian.com/world/rss",
+
+  DW: "https://rss.dw.com/rdf/rss-en-all"
 };
+
+/* =========================
+   RSS SOURCES
+========================= */
+
+const rssSources = {
+  Macedonia: [FEEDS.BBC_EUROPE, FEEDS.DW],
+
+  Germany: [FEEDS.DW, FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  France: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD, FEEDS.GUARDIAN_WORLD],
+  Italy: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+  Spain: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+
+  "United Kingdom": [FEEDS.BBC_UK, FEEDS.GUARDIAN_WORLD],
+  Ireland: [FEEDS.BBC_UK, FEEDS.GUARDIAN_WORLD],
+
+  "United States": [FEEDS.NYT_HOME, FEEDS.FOX_US, FEEDS.BBC_US],
+
+  Russia: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD, FEEDS.DW],
+  Ukraine: [FEEDS.BBC_EUROPE, FEEDS.NYT_WORLD],
+
+  China: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD, FEEDS.DW],
+  Japan: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+  India: [FEEDS.BBC_ASIA, FEEDS.NYT_WORLD],
+
+  Turkey: [FEEDS.BBC_MIDDLE_EAST, FEEDS.DW],
+  Iran: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Israel: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+  Egypt: [FEEDS.BBC_MIDDLE_EAST, FEEDS.NYT_WORLD],
+
+  Greece: [FEEDS.BBC_EUROPE],
+  Bulgaria: [FEEDS.BBC_EUROPE],
+  Serbia: [FEEDS.BBC_EUROPE],
+  Albania: [FEEDS.BBC_EUROPE],
+  Kosovo: [FEEDS.BBC_EUROPE],
+
+  Brazil: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Argentina: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+
+  Australia: [FEEDS.BBC_WORLD, FEEDS.NYT_WORLD],
+  Canada: [FEEDS.BBC_US, FEEDS.NYT_WORLD]
+};
+
+/* =========================
+   HELPERS
+========================= */
 
 function normalizeCountryName(name) {
   const map = {
@@ -57,12 +102,15 @@ async function fetchWikipediaSummary(country) {
   try {
     const res = await fetch(url);
     const data = await res.json();
-
     return data.extract || "No summary available.";
   } catch {
     return "No summary available.";
   }
 }
+
+/* =========================
+   RSS FETCH
+========================= */
 
 async function fetchRssNews(country) {
   const feeds = rssSources[country];
@@ -74,27 +122,38 @@ async function fetchRssNews(country) {
   }
 
   const results = [];
+  const seen = new Set();
 
   for (const feedUrl of feeds) {
     try {
       const feed = await parser.parseURL(feedUrl);
 
       for (const item of feed.items || []) {
+        if (!item.title || seen.has(item.title)) continue;
+
+        seen.add(item.title);
+
         results.push({
           title: item.title,
           source: feed.title,
           link: item.link
         });
 
-        if (results.length >= 3) break;
+        if (results.length >= 6) break;
       }
     } catch (err) {
       console.log("RSS error:", err.message);
     }
+
+    if (results.length >= 6) break;
   }
 
   return results.slice(0, 3);
 }
+
+/* =========================
+   MAIN BUILDER
+========================= */
 
 async function buildCountryProfile(rawName) {
   const country = normalizeCountryName(rawName);
@@ -116,14 +175,22 @@ async function buildCountryProfile(rawName) {
   };
 }
 
+/* =========================
+   ROUTES
+========================= */
+
 app.get("/", (req, res) => {
-  res.json({ ok: true, version: "5.1.1" });
+  res.json({ ok: true, version: "6.0.0" });
 });
 
 app.get("/country/:name", async (req, res) => {
   const data = await buildCountryProfile(req.params.name);
   res.json(data);
 });
+
+/* =========================
+   START
+========================= */
 
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
