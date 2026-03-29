@@ -124,12 +124,23 @@ async function fetchRssNews(country) {
   const results = [];
   const seen = new Set();
 
+  const countryLower = country.toLowerCase();
+
   for (const feedUrl of feeds) {
     try {
       const feed = await parser.parseURL(feedUrl);
 
+      let addedFromThisFeed = false;
+
       for (const item of feed.items || []) {
-        if (!item.title || seen.has(item.title)) continue;
+        if (!item.title) continue;
+
+        const titleLower = item.title.toLowerCase();
+
+        // 🔥 ФИЛТЕР ПО ДРЖАВА
+        if (!titleLower.includes(countryLower)) continue;
+
+        if (seen.has(item.title)) continue;
 
         seen.add(item.title);
 
@@ -139,15 +150,31 @@ async function fetchRssNews(country) {
           link: item.link
         });
 
-        if (results.length >= 6) break;
+        addedFromThisFeed = true;
+        break; // ✅ зема само 1 по извор
       }
+
+      // 🔥 FALLBACK ако нема match
+      if (!addedFromThisFeed && feed.items.length > 0) {
+        const fallbackItem = feed.items[0];
+
+        if (!seen.has(fallbackItem.title)) {
+          seen.add(fallbackItem.title);
+
+          results.push({
+            title: fallbackItem.title,
+            source: feed.title,
+            link: fallbackItem.link
+          });
+        }
+      }
+
     } catch (err) {
       console.log("RSS error:", err.message);
     }
-
-    if (results.length >= 6) break;
   }
 
+  // максимум 3 вести
   return results.slice(0, 3);
 }
 
